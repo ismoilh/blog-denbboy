@@ -1,0 +1,101 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema", "clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["posts", "categories", "authors", "tags"]
+}
+
+enum PostStatus {
+  ok
+  pending
+  deleted
+
+  @@schema("posts")
+}
+
+model Post {
+  id       Int    @id @default(autoincrement())
+  title    String
+  content  String
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int    @map("author_id")
+
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId Int      @map("category_id")
+
+  status    PostStatus @default(ok)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("posts")
+  @@schema("posts")
+}
+
+enum CategoryStatus {
+  ok
+  pending
+  deleted
+
+  @@schema("categories")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  Post      Post[]
+
+  status    CategoryStatus @default(ok)
+
+  @@map("categories")
+  @@schema("categories")
+}
+
+enum TagStatus {
+  ok
+  pending
+  deleted
+
+  @@schema("tags")
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  status    TagStatus @default(ok)
+
+  @@map("tags")
+  @@schema("tags")
+}
+
+enum AuthorStatus {
+  ok
+  pending
+  deleted
+
+  @@schema("authors")
+}
+
+model Author {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  bio       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  Post      Post[]
+
+  status    AuthorStatus @default(ok)
+
+  @@map("authors")
+  @@schema("authors")
+}
